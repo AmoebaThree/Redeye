@@ -1,0 +1,12 @@
+[Unit]
+Description=Redeye - Obstacle detector
+
+[Service]
+ExecStart=/usr/bin/python /home/pi/code/Redeye/redeye.py
+Environment=PYTHONUNBUFFERED=1
+Restart=on-failure
+Type=notify
+KillSignal=SIGINT
+
+[Install]
+WantedBy=default.target

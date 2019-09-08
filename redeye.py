@@ -1,37 +1,50 @@
 if __name__ == '__main__':
-    import systemd.daemon, initio, redis, RPi.GPIO as GPIO
+    import systemd.daemon, initio, redis, RPi.GPIO as GPIO, sys
 
     print('Startup')
-    initio.init(IR=True)
+    if len(sys.argv) > 1 and sys.argv[1] == 'line':
+        print('Line mode')
+        initio.init(Line=True)
+        message_prefix = 'line'
+        left_sensor = initio.lineLeft
+        right_sensor = initio.lineRight
+    else:
+        print('Obstacle mode')
+        initio.init(IR=True)
+        message_prefix = 'obstacle'
+        left_sensor = initio.irFL
+        right_sensor = initio.irFR
+
+    redis_queue = 'redeye-' + message_prefix    
     r = redis.Redis(host='192.168.0.1', port=6379, db=0)
     p = r.pubsub(ignore_subscribe_messages=True)
-    p.subscribe('redeye')
+    p.subscribe(redis_queue)
     print('Startup complete')
     systemd.daemon.notify('READY=1')
 
     try:
         def left_callback(c):
-            if GPIO.input(initio.irFL):
-                r.publish("redeye-left", "left-off")
+            if GPIO.input(left_sensor):
+                r.publish(redis_queue + '-left', message_prefix + '-left-off')
             else:
-                r.publish("redeye-left", "left-on")
+                r.publish(redis_queue + '-left', message_prefix + '-left-on')
         def right_callback(c):
-            if GPIO.input(initio.irFR):
-                r.publish("redeye-right", "right-off")
+            if GPIO.input(right_sensor):
+                r.publish(redis_queue + '-right', message_prefix + '-right-off')
             else:
-                r.publish("redeye-right", "right-on")
+                r.publish(redis_queue + '-right', message_prefix + '-right-on')
 
-        GPIO.add_event_detect(initio.irFL, GPIO.BOTH, callback=left_callback, bouncetime=100)  
-        GPIO.add_event_detect(initio.irFR, GPIO.BOTH, callback=right_callback, bouncetime=100)  
-        left_callback(initio.irFL)
-        right_callback(initio.irFR)
+        GPIO.add_event_detect(left_sensor, GPIO.BOTH, callback=left_callback, bouncetime=100)  
+        GPIO.add_event_detect(right_sensor, GPIO.BOTH, callback=right_callback, bouncetime=100)  
+        left_callback(left_sensor)
+        right_callback(right_sensor)
 
         for message in p.listen():
             # If message is received, send current status
-            left_callback(initio.irFL)
-            right_callback(initio.irFR)
+            left_callback(left_sensor)
+            right_callback(right_sensor)
 
     except:
         p.close()
         initio.cleanup()
-        print("Goodbye")
+        print('Goodbye')

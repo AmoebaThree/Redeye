@@ -2,7 +2,7 @@
 Description=Redeye-Line - Line detector
 
 [Service]
-ExecStart=/usr/bin/python /home/pi/code/Redeye/redeye.py line
+ExecStart=/usr/bin/python /home/pi/zoidberg-deploy/redeye/redeye.py line
 Environment=PYTHONUNBUFFERED=1
 Restart=on-failure
 Type=notify

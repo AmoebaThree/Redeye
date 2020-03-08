@@ -2,7 +2,7 @@
 Description=Redeye - Obstacle detector
 
 [Service]
-ExecStart=/usr/bin/python /home/pi/code/Redeye/redeye.py
+ExecStart=/usr/bin/python /home/pi/zoidberg-deploy/redeye/redeye.py
 Environment=PYTHONUNBUFFERED=1
 Restart=on-failure
 Type=notify

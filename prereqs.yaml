@@ -1,0 +1,4 @@
+apt:
+  - python-systemd
+pip:
+  - redis

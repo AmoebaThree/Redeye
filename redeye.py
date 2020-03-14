@@ -15,7 +15,7 @@ if __name__ == '__main__':
         left_sensor = initio.irFL
         right_sensor = initio.irFR
 
-    redis_queue = 'redeye-' + message_prefix    
+    redis_queue = 'redeye.' + message_prefix    
     r = redis.Redis(host='192.168.0.1', port=6379, db=0)
     p = r.pubsub(ignore_subscribe_messages=True)
     p.subscribe(redis_queue)
@@ -25,14 +25,14 @@ if __name__ == '__main__':
     try:
         def left_callback(c):
             if GPIO.input(left_sensor):
-                r.publish(redis_queue + '-left', message_prefix + '-left-off')
+                r.publish(redis_queue + '.left', message_prefix + '.left.off')
             else:
-                r.publish(redis_queue + '-left', message_prefix + '-left-on')
+                r.publish(redis_queue + '.left', message_prefix + '.left.on')
         def right_callback(c):
             if GPIO.input(right_sensor):
-                r.publish(redis_queue + '-right', message_prefix + '-right-off')
+                r.publish(redis_queue + '.right', message_prefix + '.right.off')
             else:
-                r.publish(redis_queue + '-right', message_prefix + '-right-on')
+                r.publish(redis_queue + '.right', message_prefix + '.right.on')
 
         GPIO.add_event_detect(left_sensor, GPIO.BOTH, callback=left_callback, bouncetime=100)  
         GPIO.add_event_detect(right_sensor, GPIO.BOTH, callback=right_callback, bouncetime=100)  

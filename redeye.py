@@ -35,8 +35,9 @@ def execute():
     p = r.pubsub(ignore_subscribe_messages=True)
     p.subscribe(redis_queue)
 
-    print('Startup complete')
+    r.publish('services', redis_queue + '.on')
     systemd.daemon.notify('READY=1')
+    print('Startup complete')
 
     try:
         def left_callback(c):
@@ -65,7 +66,10 @@ def execute():
 
     except:
         p.close()
+
         initio.cleanup()
+
+        r.publish('services', redis_queue + '.off')
         print('Goodbye')
 
 

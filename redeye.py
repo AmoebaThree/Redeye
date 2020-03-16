@@ -1,11 +1,13 @@
-if __name__ == '__main__':
-    import systemd.daemon
-    import initio
-    import redis
-    import RPi.GPIO as GPIO
-    import sys
+import systemd.daemon
+import initio
+import redis
+import RPi.GPIO as GPIO
+import sys
 
+
+def execute():
     print('Startup')
+
     if len(sys.argv) > 1 and sys.argv[1] == 'line':
         print('Line mode')
         initio.init(Line=True)
@@ -20,26 +22,34 @@ if __name__ == '__main__':
         right_sensor = initio.irFR
 
     redis_queue = 'redeye.' + message_prefix
+    redis_queue_left = redis_queue + '.left'
+    redis_queue_right = redis_queue + '.right'
+
+    message_left_off = message_prefix + '.left.off'
+    message_left_on = message_prefix + '.left.on'
+    message_right_off = message_prefix + '.right.off'
+    message_right_on = message_prefix + '.right.on'
+
     r = redis.Redis(host='192.168.0.1', port=6379,
                     db=0, decode_responses=True)
     p = r.pubsub(ignore_subscribe_messages=True)
     p.subscribe(redis_queue)
+
     print('Startup complete')
     systemd.daemon.notify('READY=1')
 
     try:
         def left_callback(c):
             if GPIO.input(left_sensor):
-                r.publish(redis_queue + '.left', message_prefix + '.left.off')
+                r.publish(redis_queue_left, message_left_off)
             else:
-                r.publish(redis_queue + '.left', message_prefix + '.left.on')
+                r.publish(redis_queue_left, message_left_on)
 
         def right_callback(c):
             if GPIO.input(right_sensor):
-                r.publish(redis_queue + '.right',
-                          message_prefix + '.right.off')
+                r.publish(redis_queue_right, message_right_off)
             else:
-                r.publish(redis_queue + '.right', message_prefix + '.right.on')
+                r.publish(redis_queue_right, message_right_on)
 
         GPIO.add_event_detect(left_sensor, GPIO.BOTH,
                               callback=left_callback, bouncetime=100)
@@ -57,3 +67,7 @@ if __name__ == '__main__':
         p.close()
         initio.cleanup()
         print('Goodbye')
+
+
+if __name__ == '__main__':
+    execute()

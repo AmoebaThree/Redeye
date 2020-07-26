@@ -6,7 +6,7 @@ Obstacle detector
 
 Format: \<channel> "message"
 
-**Inputs**
+### Inputs
 
 * \<redeye.line> *
   * Triggers a request for status of the line sensors
@@ -15,7 +15,7 @@ Format: \<channel> "message"
   * Triggers a request for status of the obstacle sensors
   * Only if this Redeye is running in obstacle mode
 
-**Outputs**
+### Outputs
 
 * \<redeye.line.left> "redeye.line.left.on"
   * Left line sensor on, sensor has been triggered
